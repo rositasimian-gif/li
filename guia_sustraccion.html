@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sustracción hasta 10 000 — 3° Básico</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 20px 16px 14px; text-align: center; }
+  .header h1 { font-size: 22px; font-weight: 900; margin: 6px 0 2px; }
+  .header p { opacity: .85; font-size: 13px; }
+  .score-badge { display: inline-block; margin-top: 10px; background: rgba(255,255,255,.2); border-radius: 20px; padding: 5px 18px; font-size: 14px; font-weight: 700; }
+
+  /* TABS */
+  .tabs { display: flex; overflow-x: auto; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.07); }
+  .tabs::-webkit-scrollbar { height: 4px; }
+  .tabs::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+  .tab-btn { flex: 0 0 auto; padding: 10px 12px; border: none; border-bottom: 3px solid transparent; background: transparent; cursor: pointer; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; white-space: nowrap; color: #666; font-weight: 500; transition: all .2s; }
+  .tab-btn.active { font-weight: 700; }
+  .tab-btn .tab-icon { font-size: 16px; }
+  .tab-btn .tab-score { font-size: 10px; color: #aaa; font-weight: 600; }
+  .tab-btn .tab-score.complete { color: #27ae60; }
+
+  /* CONTENT */
+  .content { max-width: 600px; margin: 0 auto; padding: 14px 12px 60px; }
+  .section-panel { display: none; }
+  .section-panel.active { display: block; }
+
+  /* SECTION HEADER */
+  .sec-header { border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; border: 2px solid transparent; }
+  .sec-header .sec-icon { font-size: 28px; }
+  .sec-header h2 { font-size: 15px; font-weight: 800; color: #2c3e50; }
+  .sec-header p { font-size: 12px; color: #555; margin-top: 2px; }
+
+  /* EXERCISE CARD */
+  .ex-card { border: 2px solid #e0e0e0; border-radius: 14px; padding: 14px 12px; background: #fafafa; cursor: pointer; transition: all .2s; margin-bottom: 10px; }
+  .ex-card:hover { border-color: #ccc; }
+  .ex-card.active-card { background: #fafeff; }
+  .ex-card.correct { border-color: #27ae60 !important; background: #f0fff4 !important; cursor: default; }
+  .ex-card.wrong { border-color: #e74c3c !important; background: #fff5f5 !important; }
+  .ex-display { text-align: center; font-family: monospace; font-size: 20px; font-weight: 800; color: #2c3e50; }
+  .ex-answer { display: inline-block; min-width: 64px; text-align: center; font-family: monospace; font-size: 20px; font-weight: 800; }
+  .ex-answer.blank { border-bottom: 3px solid; }
+  .wrong-hint { text-align: center; font-size: 12px; color: #e74c3c; margin-top: 4px; }
+  .retry-btn { padding: 4px 12px; border-radius: 20px; border: none; color: #fff; cursor: pointer; font-size: 12px; font-weight: 600; margin-top: 6px; display: block; margin: 8px auto 0; }
+
+  /* NUMPAD */
+  .numpad { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; max-width: 180px; margin: 10px auto 0; }
+  .numpad button { padding: 12px 0; font-size: 17px; font-weight: 700; border-radius: 10px; border: 2px solid #e0e0e0; background: #fff; cursor: pointer; transition: transform .1s; }
+  .numpad button:active { transform: scale(.93); }
+  .numpad .del-btn { border-color: #ffcccc; background: #fff5f5; color: #e74c3c; }
+  .numpad .ok-btn { border-color: #c8f5c8; background: #f0fff0; color: #27ae60; }
+
+  /* GRID 2 COL */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* MENTAL HINT BOX */
+  .hint-box { background: #FFF3E0; border: 1.5px solid rgba(230,126,34,.3); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; }
+  .hint-box strong { color: #E67E22; font-size: 14px; display: block; margin-bottom: 3px; }
+  .hint-box span { font-size: 12px; color: #777; }
+
+  /* FAMILY */
+  .family-card { border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+  .family-label { text-align: center; margin-bottom: 12px; }
+  .family-label span { border-radius: 20px; padding: 4px 14px; font-size: 13px; font-weight: 700; color: #fff; }
+  .family-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .op-cell { border: 2px solid #e0e0e0; border-radius: 10px; padding: 10px 8px; cursor: pointer; text-align: center; background: #fff; transition: all .2s; }
+  .op-cell.correct { border-color: #27ae60; background: #f0fff4; cursor: default; }
+  .op-cell.wrong { border-color: #e74c3c; background: #fff5f5; }
+  .op-cell .op-text { font-family: monospace; font-weight: 700; font-size: 15px; color: #2c3e50; }
+  .op-cell .op-input { font-family: monospace; font-weight: 800; font-size: 15px; display: inline-block; min-width: 40px; border-bottom: 2px solid; }
+
+  /* WORD PROBLEM */
+  .word-card { border: 2px solid #e0e0e0; border-radius: 14px; padding: 14px; margin-bottom: 12px; background: #fafafa; }
+  .word-card.correct { border-color: #27ae60; background: #f0fff4; }
+  .word-card.wrong { border-color: #e74c3c; background: #fff5f5; }
+  .word-tag { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 1px 6px; margin-right: 6px; }
+  .tag-resta { background: #fff3e0; color: #e65100; }
+  .tag-suma { background: #e8f5e9; color: #2e7d32; }
+  .word-text { font-size: 14px; color: #2c3e50; line-height: 1.5; margin-bottom: 10px; }
+  .word-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .word-op { font-family: monospace; font-weight: 700; font-size: 16px; color: #2c3e50; }
+  .word-inp { width: 80px; padding: 6px 8px; font-size: 16px; font-weight: 700; border-radius: 8px; border: 2px solid; text-align: center; font-family: monospace; }
+  .word-unit { font-size: 13px; color: #666; }
+  .verify-btn { padding: 6px 14px; border-radius: 20px; border: none; color: #fff; cursor: pointer; font-weight: 700; font-size: 13px; }
+  .result-emoji { font-size: 16px; }
+
+  /* PROGRESS */
+  .progress-box { margin-top: 24px; background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+  .progress-box h3 { font-weight: 700; color: #2c3e50; margin-bottom: 10px; font-size: 14px; }
+  .prog-row { margin-bottom: 7px; }
+  .prog-labels { display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-bottom: 2px; }
+  .prog-bar-bg { height: 7px; background: #eee; border-radius: 99px; overflow: hidden; }
+  .prog-bar-fill { height: 100%; border-radius: 99px; transition: width .5s; }
+
+  /* STAR */
+  .star-anim { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 999; }
+  .star-anim span { font-size: 80px; animation: pop .4s ease-out forwards; }
+  @keyframes pop { 0%{transform:scale(0);opacity:0} 60%{transform:scale(1.3)} 100%{transform:scale(1);opacity:1} }
+
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:32px">➖</div>
+  <h1>Sustracción hasta 10 000</h1>
+  <p>Guía Interactiva · 3° Básico · Colegio Arrayanes</p>
+  <div class="score-badge" id="total-score">⭐ 0 / 0</div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="content" id="content"></div>
+
+<div class="star-anim" id="star" style="display:none"><span>🌟</span></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const SECTIONS = [
+  { id:"diferencia", title:"Significado de la Diferencia", icon:"🔢", color:"#FF6B6B", bg:"#FFF0F0",
+    desc:"Resta el número menor del número mayor para encontrar la diferencia.", type:"basic",
+    exercises:[{a:64,b:12},{a:97,b:17},{a:85,b:82},{a:62,b:18},{a:50,b:47},{a:563,b:426},{a:812,b:631},{a:950,b:178},{a:900,b:256}] },
+  { id:"reagrupar_dec", title:"Reagrupando Decenas y Unidades", icon:"📦", color:"#4ECDC4", bg:"#F0FFFE",
+    desc:"Cuando no hay suficientes unidades, reagrupa una decena en 10 unidades.", type:"basic",
+    exercises:[{a:3763,b:1207},{a:7249,b:249},{a:9646,b:523},{a:5546,b:23},{a:2548,b:1319},{a:6977,b:2459},{a:7880,b:5656}] },
+  { id:"reagrupar_cen", title:"Reagrupando Centenas y Miles", icon:"🏗️", color:"#45B7D1", bg:"#F0F8FF",
+    desc:"Cuando no hay suficientes centenas, reagrupa una unidad de mil en 10 centenas.", type:"basic",
+    exercises:[{a:6000,b:800},{a:3600,b:1700},{a:2659,b:1943},{a:6491,b:3570},{a:5064,b:4732},{a:9256,b:3625},{a:4249,b:1926}] },
+  { id:"reagrupar_todo", title:"Reagrupando en Todos los Lugares", icon:"🎯", color:"#F0A500", bg:"#FFFEF0",
+    desc:"Reagrupa en todos los lugares que sea necesario.", type:"basic",
+    exercises:[{a:5316,b:785},{a:9342,b:1570},{a:8057,b:2763},{a:6507,b:5785},{a:9736,b:8875},{a:3056,b:1274},{a:5146,b:2598}] },
+  { id:"ceros", title:"Resta con Números con Ceros", icon:"🔵", color:"#BB8FCE", bg:"#FAF0FF",
+    desc:"Reagrupa en cascada cuando hay ceros en el número mayor.", type:"basic",
+    exercises:[{a:2000,b:657},{a:6000,b:4531},{a:9000,b:7891},{a:7800,b:345},{a:3004,b:1681},{a:9007,b:984}] },
+  { id:"mental", title:"Resta Mental", icon:"🧠", color:"#E67E22", bg:"#FFF8F0",
+    desc:"Usa atajos mentales para restar más rápido sin papel.", type:"mental",
+    groups:[
+      { label:"Restar unidades (sin reagrupar)", hint:"Resta solo las unidades. Ej: 429−4 → 9−4=5 → resultado 425",
+        exercises:[{a:437,b:3},{a:628,b:4},{a:543,b:7},{a:745,b:8}] },
+      { label:"Restar decenas (sin reagrupar)", hint:"Ej: 753−30 → separa 50−30=20, luego 703+20=723",
+        exercises:[{a:480,b:20},{a:276,b:50},{a:692,b:40},{a:853,b:30}] },
+      { label:"Restar decenas (con reagrupar)", hint:"Restar 70 = restar 100 y sumar 30. Ej: 529−70 → 529−100=429, 429+30=459",
+        exercises:[{a:529,b:70},{a:425,b:60},{a:718,b:80},{a:936,b:80}] },
+      { label:"Restar centenas", hint:"Ej: 827−400 → separa 800+27, luego 800−400=400, resultado: 427",
+        exercises:[{a:827,b:400},{a:749,b:500},{a:973,b:300},{a:508,b:400}] },
+    ] },
+  { id:"familia", title:"Familia de Operaciones", icon:"👨‍👩‍👧", color:"#27AE60", bg:"#F0FFF4",
+    desc:"Parte + Parte = Todo. Con 3 números puedes escribir 2 sumas y 2 restas.", type:"family",
+    families:[
+      {parts:[274,543],total:817},{parts:[1675,1233],total:2908},
+      {parts:[1421,2542],total:3963},{parts:[2328,1563],total:3891}] },
+  { id:"prueba", title:"Tipo Prueba — Arrayanes", icon:"📝", color:"#C0392B", bg:"#FFF5F5",
+    desc:"Ejercicios al estilo de las pruebas reales del colegio. ¡A demostrar lo que sabes!", type:"basic",
+    exercises:[
+      {a:9065,b:4173},{a:5500,b:4319},{a:8963,b:3124},{a:2037,b:887},
+      {a:6325,b:1478},{a:6540,b:1281},{a:9604,b:1417},{a:7302,b:6589},
+      {a:4668,b:1209},{a:7502,b:4699},{a:8021,b:4573},{a:9608,b:459},
+      {a:9087,b:2010},{a:6006,b:443},{a:2006,b:1901},
+      {a:8302,b:2444},{a:1000,b:901},{a:2542,b:1463}] },
+  { id:"problemas", title:"Problemas de Aplicación", icon:"📖", color:"#8E44AD", bg:"#FAF0FF",
+    desc:"Lee el problema y encuentra la respuesta correcta.", type:"word",
+    problems:[
+      {text:"Sandra hizo 720 flores de papel y su hermana hizo 690. ¿Cuántas flores más hizo Sandra?",a:720,b:690,unit:"flores",op:"resta"},
+      {text:"Juan corrió 24 vueltas y Susana corrió 15. ¿Cuál es la diferencia entre las vueltas?",a:24,b:15,unit:"vueltas",op:"resta"},
+      {text:"Constanza horneó 219 tartaletas el martes y 120 el lunes. ¿Cuántas más horneó el martes?",a:219,b:120,unit:"tartaletas",op:"resta"},
+      {text:"Bruno quiere comprar galletas que cuestan $401. Tiene $315. ¿Cuánto más necesita?",a:401,b:315,unit:"pesos",op:"resta"},
+      {text:"Pedro cosechó 4132 manzanas entre lunes y martes. El lunes cosechó 438. ¿Cuántas cosechó el martes?",a:4132,b:438,unit:"manzanas",op:"resta"},
+      {text:"Manuel tiene 2215 tarjetas rojas y 1685 azules. ¿Cuántas más tarjetas rojas que azules tiene?",a:2215,b:1685,unit:"tarjetas",op:"resta"},
+      {text:"Javiera vendió 3256 estufas en marzo. En julio vendió 1265 más que en marzo. ¿Cuántas vendió en julio?",a:3256,b:1265,unit:"estufas",op:"suma"},
+      {text:"El año pasado un colegio tenía 1893 alumnos. Este año ingresaron 304 más. ¿Cuántos alumnos tiene ahora?",a:1893,b:304,unit:"alumnos",op:"suma"},
+      {text:"En un concurso, Josefa terminó con 4380 puntos y Andrés con 3287. ¿Con cuántos puntos más terminó Josefa?",a:4380,b:3287,unit:"puntos",op:"resta"},
+      {text:"Unimarc compró 1408 sacos de harina y Santa Isabel compró 1988. ¿Cuántos sacos compraron en total?",a:1408,b:1988,unit:"sacos",op:"suma"},
+      {text:"En el campo de Karen cosecharon 6345 rosas, pero se marchitaron 3278. ¿Cuántas rosas le quedan?",a:6345,b:3278,unit:"rosas",op:"resta"},
+      {text:"Martín tenía una caja con 8000 legos, pero se perdieron 3235. ¿Cuántos legos tiene ahora?",a:8000,b:3235,unit:"legos",op:"resta"},
+    ] },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let activeSection = 0;
+let activeCard = null; // "si-ei" or "si-gi-ei" or "si-fi-oi"
+let scores = SECTIONS.map(() => ({})); // scores[si][key] = true/false/null
+
+function getAnswer(ex) { return Math.abs(ex.a - ex.b); }
+function getWordAnswer(p) { return p.op === "suma" ? p.a + p.b : Math.abs(p.a - p.b); }
+
+function sectionStats(si) {
+  const s = SECTIONS[si]; const sc = scores[si];
+  let total = 0;
+  if (s.type === "basic") total = s.exercises.length;
+  else if (s.type === "mental") total = s.groups.reduce((a,g)=>a+g.exercises.length,0);
+  else if (s.type === "family") total = s.families.reduce((a,f)=>a+4,0);
+  else if (s.type === "word") total = s.problems.length;
+  const correct = Object.values(sc).filter(v=>v===true).length;
+  return {correct, total};
+}
+
+function totalStats() {
+  let tc=0,tt=0;
+  SECTIONS.forEach((_,i)=>{ const {correct,total}=sectionStats(i); tc+=correct; tt+=total; });
+  return {tc,tt};
+}
+
+// ── NUMPAD HTML ───────────────────────────────────────────────────────────────
+function numpadHtml(inputId, cardKey) {
+  return `<div class="numpad" id="np-${cardKey}">
+    ${[7,8,9,4,5,6,1,2,3].map(d=>`<button onclick="appendDigit('${inputId}','${cardKey}',${d})">${d}</button>`).join('')}
+    <button class="del-btn" onclick="deleteDigit('${inputId}','${cardKey}')">⌫</button>
+    <button onclick="appendDigit('${inputId}','${cardKey}',0)">0</button>
+    <button class="ok-btn" onclick="submitAnswer('${inputId}','${cardKey}')">✓</button>
+  </div>`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render() {
+  renderTabs();
+  renderContent();
+  updateTotalScore();
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = SECTIONS.map((s,i) => {
+    const {correct,total} = sectionStats(i);
+    const isComplete = total > 0 && correct === total;
+    return `<button class="tab-btn ${i===activeSection?'active':''}" 
+      style="${i===activeSection?`border-bottom-color:${s.color};color:${s.color}`:''}"
+      onclick="switchSection(${i})">
+      <span class="tab-icon">${s.icon}</span>
+      <span>${s.title.split(' ').slice(0,2).join(' ')}</span>
+      ${total>0?`<span class="tab-score ${isComplete?'complete':''}">${correct}/${total}</span>`:''}
+    </button>`;
+  }).join('');
+}
+
+function renderContent() {
+  const ct = document.getElementById('content');
+  const s = SECTIONS[activeSection];
+  let html = `<div class="sec-header" style="background:${s.bg};border-color:${s.color}33">
+    <span class="sec-icon">${s.icon}</span>
+    <div><h2>${s.title}</h2><p>${s.desc}</p></div>
+  </div>`;
+
+  if (s.type === 'basic') html += renderBasic(activeSection);
+  else if (s.type === 'mental') html += renderMental(activeSection);
+  else if (s.type === 'family') html += renderFamily(activeSection);
+  else if (s.type === 'word') html += renderWord(activeSection);
+
+  html += renderProgress();
+  ct.innerHTML = html;
+}
+
+function renderBasic(si) {
+  const s = SECTIONS[si];
+  return s.exercises.map((ex,ei) => {
+    const key = `${si}-${ei}`;
+    const sc = scores[si][key];
+    const ans = getAnswer(ex);
+    const isActive = activeCard === key;
+    let cls = 'ex-card';
+    if (sc === true) cls += ' correct';
+    else if (sc === false) cls += ' wrong';
+    else if (isActive) cls += ' active-card';
+    const ansColor = sc===true?'#27ae60':sc===false?'#e74c3c':s.color;
+    let inner = `<div class="ex-display">
+      ${ex.a} − ${ex.b} = 
+      <span class="ex-answer ${sc===null&&!isActive&&sc!==true&&sc!==false?'blank':sc===null?'blank':''}" 
+        id="ans-${key}" style="color:${ansColor};border-color:${s.color}">
+        ${sc!==null ? ans : (isActive ? (document.getElementById('inp-'+key)||{value:''}).value || '' : '')}
+      </span>
+    </div>`;
+    if (sc === false) inner += `<div class="wrong-hint">Tu respuesta era incorrecta · Correcta: ${ans}</div>`;
+    if (isActive && sc === null) inner += numpadHtml(`inp-${key}`, key);
+    if (sc === false) inner += `<button class="retry-btn" style="background:${s.color}" onclick="retryCard('${key}','${si}')">Intentar de nuevo</button>`;
+    if (sc === true) inner += `<div style="text-align:center;margin-top:6px">🌟</div>`;
+    return `<div class="${cls}" id="card-${key}" onclick="toggleCard('${key}','${si}')">${inner}</div>`;
+  }).join('');
+}
+
+function renderMental(si) {
+  const s = SECTIONS[si];
+  return s.groups.map((grp,gi) => {
+    let html = `<div class="hint-box"><strong>${grp.label}</strong><span>💡 ${grp.hint}</span></div>
+    <div class="grid2">`;
+    html += grp.exercises.map((ex,ei) => {
+      const key = `${si}-${gi}-${ei}`;
+      const sc = scores[si][key];
+      const ans = getAnswer(ex);
+      const isActive = activeCard === key;
+      let cls = 'ex-card';
+      if (sc===true) cls+=' correct'; else if(sc===false) cls+=' wrong'; else if(isActive) cls+=' active-card';
+      const ansColor = sc===true?'#27ae60':sc===false?'#e74c3c':s.color;
+      let inner = `<div class="ex-display" style="font-size:17px">
+        ${ex.a} − ${ex.b} = 
+        <span class="ex-answer ${sc===null?'blank':''}" id="ans-${key}" style="color:${ansColor};border-color:${s.color}">
+          ${sc!==null ? ans : ''}
+        </span>
+      </div>`;
+      if (sc===false) inner += `<div class="wrong-hint">Correcta: ${ans}</div>`;
+      if (isActive && sc===null) inner += numpadHtml(`inp-${key}`,key);
+      if (sc===false) inner += `<button class="retry-btn" style="background:${s.color};font-size:11px" onclick="retryCard('${key}','${si}')">Reintentar</button>`;
+      if (sc===true) inner += `<div style="text-align:center;margin-top:4px">🌟</div>`;
+      return `<div class="${cls}" id="card-${key}" onclick="toggleCard('${key}','${si}')">${inner}</div>`;
+    }).join('');
+    html += '</div>';
+    return html;
+  }).join('');
+}
+
+function renderFamily(si) {
+  const s = SECTIONS[si];
+  let html = `<div style="background:#e8f5e9;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#2e7d32">
+    💡 <strong>Recuerda:</strong> con los mismos 3 números puedes escribir 4 operaciones relacionadas.
+  </div>`;
+  html += s.families.map((fam,fi) => {
+    const ops = [
+      {label:`${fam.parts[0]} + ${fam.parts[1]} =`, answer:fam.total},
+      {label:`${fam.parts[1]} + ${fam.parts[0]} =`, answer:fam.total},
+      {label:`${fam.total} − ${fam.parts[1]} =`, answer:fam.parts[0]},
+      {label:`${fam.total} − ${fam.parts[0]} =`, answer:fam.parts[1]},
+    ];
+    let inner = `<div class="family-label"><span style="background:${s.color}">Partes: ${fam.parts[0]} y ${fam.parts[1]} · Todo: ${fam.total}</span></div>
+    <div class="family-grid">`;
+    inner += ops.map((op,oi) => {
+      const key = `${si}-${fi}-${oi}`;
+      const sc = scores[si][key];
+      const isActive = activeCard === key;
+      let cls = 'op-cell';
+      if(sc===true) cls+=' correct'; else if(sc===false) cls+=' wrong'; else if(isActive) cls+=' active-card';
+      const ansColor = sc===true?'#27ae60':sc===false?'#e74c3c':s.color;
+      let c = `<div class="op-text">${op.label} <span class="op-input" id="ans-${key}" style="color:${ansColor};border-color:${s.color}">
+        ${sc!==null ? op.answer : ''}
+      </span></div>`;
+      if(isActive && sc===null) c += numpadHtml(`inp-${key}`,key);
+      if(sc===true) c += `<div>🌟</div>`;
+      if(sc===false) c += `<div style="font-size:11px;color:#e74c3c">Correcta: ${op.answer}</div>
+        <button class="retry-btn" style="background:${s.color};font-size:11px;margin-top:4px" onclick="retryCard('${key}','${si}')">Reintentar</button>`;
+      return `<div class="${cls}" id="card-${key}" onclick="toggleCard('${key}','${si}')">${c}</div>`;
+    }).join('');
+    inner += '</div>';
+    return `<div class="family-card" style="border:2px solid ${s.color}33;background:#FAFFF8">${inner}</div>`;
+  }).join('');
+  return html;
+}
+
+function renderWord(si) {
+  const s = SECTIONS[si];
+  return s.problems.map((prob,pi) => {
+    const key = `${si}-${pi}`;
+    const sc = scores[si][key];
+    const ans = getWordAnswer(prob);
+    const opStr = prob.op==='suma' ? `${prob.a} + ${prob.b}` : `${Math.max(prob.a,prob.b)} − ${Math.min(prob.a,prob.b)}`;
+    let cls = 'word-card'; if(sc===true) cls+=' correct'; else if(sc===false) cls+=' wrong';
+    let inner = `<div class="word-text">
+      <span class="word-tag ${prob.op==='suma'?'tag-suma':'tag-resta'}">${prob.op==='suma'?'SUMA':'RESTA'}</span>
+      ${prob.text}
+    </div>
+    <div class="word-row">
+      <span class="word-op">${opStr} =</span>
+      <input type="number" class="word-inp" id="winp-${key}" placeholder="?" style="border-color:${s.color}"
+        ${sc!==null?'disabled':''} value="${sc!==null?ans:''}">
+      <span class="word-unit">${prob.unit}</span>
+      ${sc===null?`<button class="verify-btn" style="background:${s.color}" onclick="submitWord('winp-${key}','${key}','${si}',${ans})">✓ Verificar</button>`:''}
+      ${sc===true?`<span class="result-emoji">🌟 ¡Correcto!</span>`:''}
+      ${sc===false?`<span class="result-emoji">❌ Era ${ans}</span>`:''}
+    </div>`;
+    return `<div class="${cls}">${inner}</div>`;
+  }).join('');
+}
+
+function renderProgress() {
+  let html = `<div class="progress-box"><h3>📊 Mi Progreso</h3>`;
+  SECTIONS.forEach((s,i) => {
+    const {correct,total} = sectionStats(i);
+    const pct = total>0?(correct/total)*100:0;
+    html += `<div class="prog-row">
+      <div class="prog-labels">
+        <span>${s.icon} ${s.title.length>32?s.title.slice(0,32)+'…':s.title}</span>
+        <span style="font-weight:700;color:${s.color}">${correct}/${total}</span>
+      </div>
+      <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${pct}%;background:${s.color}"></div></div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function updateTotalScore() {
+  const {tc,tt} = totalStats();
+  document.getElementById('total-score').textContent = `⭐ ${tc} / ${tt}`;
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────────
+function switchSection(i) {
+  activeSection = i; activeCard = null; render();
+  document.querySelector('.content').scrollIntoView({behavior:'smooth'});
+}
+
+function toggleCard(key, si) {
+  const sc = scores[parseInt(si)][key];
+  if (sc !== null && sc !== undefined) return;
+  activeCard = activeCard === key ? null : key;
+  renderContent();
+  if (activeCard) {
+    setTimeout(()=>{ const el=document.getElementById('card-'+key); if(el) el.scrollIntoView({behavior:'smooth',block:'center'}); },50);
+  }
+}
+
+function appendDigit(inputId, cardKey, digit) {
+  const el = document.getElementById(inputId) || (() => {
+    const inp = document.createElement('input'); inp.type='hidden'; inp.id=inputId; inp.value=''; document.body.appendChild(inp); return inp;
+  })();
+  if (!el._val) el._val = '';
+  if (el._val.length < 5) el._val += digit;
+  updateDisplay(cardKey, el._val);
+}
+
+function deleteDigit(inputId, cardKey) {
+  const el = document.getElementById(inputId);
+  if (el && el._val) { el._val = el._val.slice(0,-1); updateDisplay(cardKey, el._val); }
+}
+
+function updateDisplay(cardKey, val) {
+  const disp = document.getElementById('ans-'+cardKey);
+  if (disp) disp.textContent = val;
+}
+
+function submitAnswer(inputId, cardKey) {
+  const el = document.getElementById(inputId);
+  const val = el && el._val ? el._val : '';
+  if (!val) return;
+  const parts = cardKey.split('-');
+  const si = parseInt(parts[0]);
+  const s = SECTIONS[si];
+  let answer;
+  if (s.type === 'basic') { answer = getAnswer(s.exercises[parseInt(parts[1])]); }
+  else if (s.type === 'mental') { answer = getAnswer(s.groups[parseInt(parts[1])].exercises[parseInt(parts[2])]); }
+  else if (s.type === 'family') {
+    const fi=parseInt(parts[1]), oi=parseInt(parts[2]), fam=s.families[fi];
+    const ops=[fam.total,fam.total,fam.parts[0],fam.parts[1]];
+    answer = ops[oi];
+  }
+  const correct = parseInt(val) === answer;
+  scores[si][cardKey] = correct;
+  activeCard = null;
+  if (correct) showStar();
+  renderContent(); updateTotalScore(); renderTabs();
+}
+
+function submitWord(inputId, cardKey, si, answer) {
+  const el = document.getElementById(inputId);
+  if (!el || !el.value) return;
+  const correct = parseInt(el.value) === answer;
+  scores[parseInt(si)][cardKey] = correct;
+  if (correct) showStar();
+  renderContent(); updateTotalScore(); renderTabs();
+}
+
+function retryCard(cardKey, si) {
+  scores[parseInt(si)][cardKey] = null;
+  activeCard = null;
+  renderContent(); updateTotalScore(); renderTabs();
+}
+
+function showStar() {
+  const star = document.getElementById('star');
+  star.style.display = 'flex';
+  setTimeout(() => star.style.display = 'none', 1400);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
